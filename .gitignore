@@ -1,0 +1,34 @@
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+.terraform.lock.hcl
+crash.log
+crash.*.log
+
+# Secrets
+secrets.yml
+.age/
+.sops.yaml
+*.tfvars
+!example.tfvars
+
+# Vault
+.vault-token
+
+# Kubernetes
+kubeconfig
+.kube/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
