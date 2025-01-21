@@ -9,28 +9,45 @@ Ce projet permet de déployer et configurer automatiquement un cluster K3s sur u
 - **Terraform** : Outil d'Infrastructure as Code
 - **HashiCorp Vault** : Gestionnaire de secrets
 - **OVH API** : API pour interagir avec l'infrastructure OVH
+- **Fail2ban** : Protection contre les tentatives d'intrusion
+- **UFW** : Pare-feu simplifié pour Linux
 
 ### Structure des fichiers
 - **providers.tf** : Configuration des providers Terraform
 - **variables.tf** : Déclaration des variables
 - **main.tf** : Définition des ressources et des dépendances
-- **outputs.tf** : Déclaration des outputs
+- **secure_server.sh** : Script de sécurisation du serveur
+- **install_k3s.sh** : Script d'installation de K3s
 - **terraform.tfvars** : Variables d'environnement
 - **README.md** : Documentation du projet
 
 ## Fonctionnalités
 
-### 1. Gestion des secrets avec Vault
+### 1. Sécurisation du serveur
+- Configuration SSH sécurisée
+  - Désactivation de l'accès root
+  - Authentification par clé uniquement
+  - Limitation des tentatives de connexion
+- Protection contre les attaques
+  - Fail2ban pour SSH et API Kubernetes
+  - Pare-feu UFW configuré
+  - Monitoring des tentatives d'intrusion
+- Gestion des ports
+  - SSH (22)
+  - Kubernetes API (6443)
+  - HTTP/HTTPS (80/443)
+
+### 2. Gestion des secrets avec Vault
 - Stockage sécurisé des credentials OVH
 - Séparation des secrets de l'infrastructure
 - Intégration native avec Terraform
 
-### 2. Installation automatisée de K3s
+### 3. Installation automatisée de K3s
 - Déploiement via SSH
 - Configuration automatique du kubeconfig
 - Adaptation de la configuration pour l'accès externe
 
-### 3. Configuration réseau
+### 4. Configuration réseau
 - Configuration automatique des endpoints
 - Gestion des accès IPv4
 - Vérification des ports et du pare-feu
@@ -39,7 +56,7 @@ Ce projet permet de déployer et configurer automatiquement un cluster K3s sur u
 
 ### Infrastructure
 - Un serveur existant chez OVH
-- Accès SSH configuré
+- Accès SSH configuré avec une clé
 - Python et curl installés sur le serveur
 
 ### Outils locaux
@@ -80,19 +97,23 @@ ssh_private_key_path  = "chemin/vers/votre/cle_ssh"
 
 ## Déploiement
 
-### 1. Initialisation
+### 1. Initialisation et déploiement
 ```bash
 terraform init
-```
-
-### 2. Vérification
-```bash
 terraform plan
+terraform apply
 ```
 
-### 3. Application
+### 2. Vérification de la sécurité
 ```bash
-terraform apply
+# Vérifier le statut de fail2ban
+sudo fail2ban-client status
+
+# Vérifier les règles du pare-feu
+sudo ufw status numbered
+
+# Vérifier la configuration SSH
+grep -E "^(PermitRootLogin|PasswordAuthentication)" /etc/ssh/sshd_config
 ```
 
 ## Vérification du déploiement
@@ -112,15 +133,20 @@ k9s
 
 ### Forcer la réinstallation
 ```bash
+terraform taint null_resource.secure_server
 terraform taint null_resource.k3s_installation
-terraform taint null_resource.get_kubeconfig
 terraform apply
 ```
 
 ### Logs et debugging
 ```bash
-# Sur le serveur
-sudo systemctl status k3s
+# Logs fail2ban
+sudo tail -f /var/log/fail2ban.log
+
+# Logs SSH
+sudo tail -f /var/log/auth.log
+
+# Logs K3s
 sudo journalctl -u k3s -f
 ```
 
@@ -130,12 +156,14 @@ sudo journalctl -u k3s -f
 - Ne jamais commiter de secrets dans Git
 - Utiliser Vault en production (non-dev)
 - Restreindre les accès réseau au minimum nécessaire
-- Mettre à jour régulièrement K3s et les composants
+- Mettre à jour régulièrement les composants
+- Surveiller les logs de sécurité
 
 ### Points d'attention
 - Sauvegarder les tokens Vault
 - Sécuriser l'accès SSH
-- Monitorer les accès au cluster
+- Monitorer les tentatives d'intrusion
+- Vérifier régulièrement les règles du pare-feu
 
 ## Limitations connues
 - Configuration single-node uniquement
@@ -147,6 +175,10 @@ sudo journalctl -u k3s -f
 - Configuration de la haute disponibilité
 - Mise en place du monitoring
 - Intégration d'un système de backup
+- Amélioration de la sécurité réseau
+- Mise en place d'une rotation automatique des clés
 
-TODO/
-Add security check on machine and block port and firewall
+## TODO
+- Add security check on machine and block port and firewall
+- Implémenter des tests de sécurité automatisés
+- Ajouter une surveillance des vulnérabilités
