@@ -147,3 +147,6 @@ sudo journalctl -u k3s -f
 - Configuration de la haute disponibilité
 - Mise en place du monitoring
 - Intégration d'un système de backup
+
+TODO/
+Add security check on machine and block port and firewall
