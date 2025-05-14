@@ -31,4 +31,10 @@ variable "ssh_private_key_path" {
   type        = string
   description = "Path to the SSH private key file"
   default     = "~/.ssh/id_rsa"
+}
+
+variable "force_update" {
+  type        = bool
+  description = "Force the update of the server and K3s"
+  default     = false
 } 

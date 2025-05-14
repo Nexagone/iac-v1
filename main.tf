@@ -50,4 +50,32 @@ resource "null_resource" "get_kubeconfig" {
   provisioner "local-exec" {
     command = "mkdir -p ~/.kube && scp -i ${var.ssh_private_key_path} ${var.ssh_user}@${var.existing_server_ip}:/home/ubuntu/.kube/config ~/.kube/config"
   }
+}
+
+# Ressource pour la mise à jour du serveur et de K3s
+resource "null_resource" "update_server" {
+  # Ce trigger permet de forcer l'exécution à chaque apply si le paramètre force_update est à true
+  # Utilisation d'un timestamp pour forcer l'exécution chaque fois que force_update=true
+  triggers = {
+    force_update = var.force_update ? timestamp() : "false"
+  }
+
+  connection {
+    type        = "ssh"
+    user        = var.ssh_user
+    host        = var.existing_server_ip
+    private_key = file(var.ssh_private_key_path)
+  }
+
+  provisioner "file" {
+    source      = "update_server.sh"
+    destination = "/tmp/update_server.sh"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "chmod +x /tmp/update_server.sh",
+      "/tmp/update_server.sh"
+    ]
+  }
 } 

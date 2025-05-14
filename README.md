@@ -18,6 +18,7 @@ Ce projet permet de déployer et configurer automatiquement un cluster K3s sur u
 - **main.tf** : Définition des ressources et des dépendances
 - **secure_server.sh** : Script de sécurisation du serveur
 - **install_k3s.sh** : Script d'installation de K3s
+- **update_server.sh** : Script de mise à jour du serveur et de K3s
 - **terraform.tfvars** : Variables d'environnement
 - **README.md** : Documentation du projet
 
@@ -130,6 +131,28 @@ k9s
 ```
 
 ## Maintenance
+
+### Mise à jour du serveur et de K3s
+Pour mettre à jour le système et K3s vers les dernières versions stables :
+
+```bash
+# Mettre à jour le serveur et K3s
+terraform apply -var="force_update=true"
+```
+
+Cette commande exécutera le script update_server.sh qui :
+1. Met à jour tous les packages du système
+2. Met à jour K3s vers la dernière version
+3. Redémarre le service si nécessaire
+4. Vérifie l'état du cluster après la mise à jour
+
+Vous pouvez exécuter cette commande plusieurs fois pour forcer une mise à jour, même sans changements dans Terraform. Le mécanisme de déclenchement basé sur un timestamp garantit qu'une nouvelle exécution sera lancée à chaque fois que vous spécifiez `-var="force_update=true"`.
+
+Alternativement, vous pouvez utiliser la commande suivante pour forcer la réexécution :
+```bash
+terraform taint null_resource.update_server
+terraform apply -var="force_update=true"
+```
 
 ### Forcer la réinstallation
 ```bash
