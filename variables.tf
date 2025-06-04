@@ -34,7 +34,13 @@ variable "ssh_private_key_path" {
 }
 
 variable "force_update" {
+  description = "Force la mise à jour du serveur et de K3s"
   type        = bool
-  description = "Force the update of the server and K3s"
+  default     = false
+}
+
+variable "update_k3s" {
+  description = "Active la mise à jour de K3s lors de la mise à jour du serveur"
+  type        = bool
   default     = false
 } 

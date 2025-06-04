@@ -58,6 +58,7 @@ resource "null_resource" "update_server" {
   # Utilisation d'un timestamp pour forcer l'exécution chaque fois que force_update=true
   triggers = {
     force_update = var.force_update ? timestamp() : "false"
+    update_k3s   = var.update_k3s ? "true" : "false"
   }
 
   connection {
@@ -75,7 +76,7 @@ resource "null_resource" "update_server" {
   provisioner "remote-exec" {
     inline = [
       "chmod +x /tmp/update_server.sh",
-      "/tmp/update_server.sh"
+      "/tmp/update_server.sh ${var.update_k3s}"
     ]
   }
 } 
